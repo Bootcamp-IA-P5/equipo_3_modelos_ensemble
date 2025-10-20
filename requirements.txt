@@ -1,39 +1,37 @@
-# Core dependencies
-pandas>=1.5.0
+# Librerías básicas para análisis de datos
 numpy>=1.21.0
-scikit-learn>=1.1.0
+pandas>=1.5.0
+
+# Librerías para visualización
 matplotlib>=3.5.0
 seaborn>=0.11.0
 plotly>=5.0.0
 
+# Procesamiento de imágenes
+Pillow>=9.0.0
+opencv-python>=4.5.0
+
 # Machine Learning
-xgboost>=1.6.0
-lightgbm>=3.3.0
-optuna>=3.0.0
+scikit-learn>=1.0.0
+torch>=2.0.0
+torchvision>=0.15.0
 
-# Web Application
-streamlit>=1.20.0
-# dash>=2.0.0  # Uncomment if using Dash instead of Streamlit
-# gradio>=3.0.0  # Uncomment if using Gradio instead of Streamlit
+# Jupyter y entorno de desarrollo
+jupyter>=1.0.0
+ipykernel>=6.0.0
 
-# Data Processing
-scipy>=1.8.0
-joblib>=1.1.0
+# Utilidades
+python-dotenv>=0.19.0
+tqdm>=4.65.0
+
+# Formato y calidad de código
+black>=22.0.0
+flake8>=5.0.0
+isort>=5.10.0
 
 # Testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
-
-# Database (for advanced level)
-# pymongo>=4.0.0  # Uncomment for MongoDB
-# mysql-connector-python>=8.0.0  # Uncomment for MySQL
-
-# Monitoring and MLOps (for expert level)
-# mlflow>=2.0.0
-# evidently>=0.2.0
-
-# Development
-jupyter>=1.0.0
-ipykernel>=6.0.0
-black>=22.0.0
-flake8>=5.0.0
+ 
+# Opcional: para descargar datasets desde Kaggle con el script de `scripts/download_garbage_dataset.py`
+kaggle>=1.5.12
