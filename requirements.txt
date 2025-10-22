@@ -1,56 +1,26 @@
---- Análisis y Visualización ---
-
-Librerías básicas para manipulación de datos y visualización.
 
 numpy>=1.21.0
 pandas>=1.5.0
 matplotlib>=3.5.0
 seaborn>=0.11.0
-plotly>=5.0.0  # Para visualizaciones interactivas en notebooks
-
---- Procesamiento de Imágenes ---
-
+plotly>=5.0.0  
 Pillow>=9.0.0
-
-Se usa la versión headless para evitar dependencias de GUI en el servidor/despliegue
-
 opencv-python-headless>=4.5.0
 
---- Machine Learning & Deep Learning ---
-
-Frameworks y librerías para el entrenamiento de modelos.
 
 scikit-learn>=1.0.0
 torch>=2.0.0
 torchvision>=0.15.0
-
---- Aplicación Web ---
-
-Framework para construir la demo interactiva.
-
 streamlit>=1.10.0
-
---- Entorno de Desarrollo ---
-
-Herramientas para experimentación y desarrollo.
-
 jupyter>=1.0.0
 ipykernel>=6.0.0
-tqdm>=4.65.0  # Barras de progreso
-python-dotenv>=0.19.0 # Para gestionar variables de entorno (ej. Kaggle API keys)
-
---- Calidad de Código y Testing ---
-
-Herramientas para formateo, linting y pruebas.
+tqdm>=4.65.0  
+python-dotenv>=0.19.0
 
 black>=22.0.0
 flake8>=5.0.0
 isort>=5.10.0
 pytest>=7.0.0
-pytest-cov>=4.0.0
 
---- Scripts y Utilidades ---
-
-Para descargar el dataset automáticamente desde Kaggle
 
 kaggle>=1.5.12
