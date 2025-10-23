@@ -38,7 +38,7 @@ def parse_args():
         type=int,
         nargs=2,
         default=(224, 224),
-        help="Tamaño de entrada (h, w). EfficientNetB3 usa 224x224 por defecto",
+        help="Tamaño de entrada (h, w). Por defecto 224x224 (recomendado en B3: 300x300, pero aquí se usa 224 por decisión del proyecto)",
     )
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=10)
