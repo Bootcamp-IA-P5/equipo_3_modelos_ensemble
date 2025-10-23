@@ -37,8 +37,8 @@ def parse_args():
         "--img_size",
         type=int,
         nargs=2,
-        default=(300, 300),
-        help="Tamaño de entrada (h, w). EfficientNetB3 usa 300x300 por defecto",
+        default=(224, 224),
+        help="Tamaño de entrada (h, w). EfficientNetB3 usa 224x224 por defecto",
     )
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=10)
@@ -102,7 +102,7 @@ def build_generators(data_dir, img_size=(224, 224), batch_size=32, seed=42):
     return train_generator, val_generator
 
 
-def build_model(num_classes, input_shape=(300, 300, 3), lr=1e-4, fine_tune_at=50):
+def build_model(num_classes, input_shape=(224, 224, 3), lr=1e-4, fine_tune_at=50):
     from tensorflow.keras import layers, models, optimizers
 
     try:
