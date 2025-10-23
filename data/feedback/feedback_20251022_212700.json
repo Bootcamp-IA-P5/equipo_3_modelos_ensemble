@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-10-22T21:27:00.771244",
+  "image_path": "C:\\Users\\Andres\\AppData\\Local\\Temp\\tmpz35h2pzm.jpg",
+  "prediction": "metal",
+  "confidence": 0.9638932681760107,
+  "correct_label": "metal",
+  "user_comment": "Clasificaci\u00f3n correcta",
+  "correct": true
+}
