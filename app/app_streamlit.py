@@ -67,6 +67,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # --- Inicializar estado de la sesión ---
 if 'prediction_history' not in st.session_state:
     st.session_state.prediction_history = []
@@ -648,3 +649,26 @@ st.markdown(
 )
 
 
+# --- 4. Sección de Historial ---
+with tab2:
+    st.header("Historial de Clasificaciones")
+    if st.session_state['history']:
+        
+        if st.button("Limpiar Historial"):
+            st.session_state['history'] = []
+            st.rerun()
+
+        for item in st.session_state['history']:
+            # Muestra cada elemento del historial en un formato atractivo
+            st.markdown(f"""
+            <div class="history-item">
+                <img src="data:image/jpeg;base64,{item['image_b64']}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                <div>
+                    <h4>{item['icon']} {item['prediction']}</h4>
+                    <p style="color: {item['color']}; margin: 0;">{item['info']}</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Confianza: {item['confidence']:.2%}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Aún no tienes clasificaciones. ¡Sube una imagen en la pestaña anterior para empezar!")
