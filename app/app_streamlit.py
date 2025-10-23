@@ -13,6 +13,21 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import qrcode
+from io import BytesIO
+
+# Generar QR dinámicamente
+qr_url = "https://ecosort.streamlit.app"  # Cambia por tu URL real
+qr_img = qrcode.make(qr_url)
+
+# Convertir a BytesIO para mostrar sin guardar en disco
+buffer = BytesIO()
+qr_img.save(buffer, format="PNG")
+buffer.seek(0)
+
+# Mostrar en Streamlit
+st.image(buffer, caption="📱 Escanea para acceder desde tu móvil", width=250)
+
 
 # --- Configuración de la Página ---
 st.set_page_config(
@@ -649,26 +664,30 @@ st.markdown(
 )
 
 
-# --- 4. Sección de Historial ---
-with tab2:
-    st.header("Historial de Clasificaciones")
-    if st.session_state['history']:
-        
-        if st.button("Limpiar Historial"):
-            st.session_state['history'] = []
-            st.rerun()
+# --- NOTA: Sección de Historial comentada (falta definir tabs) ---
+# Si quieres habilitar historial, agrega st.tabs() en la página de Clasificar
+# y descomenta el siguiente código:
 
-        for item in st.session_state['history']:
-            # Muestra cada elemento del historial en un formato atractivo
-            st.markdown(f"""
-            <div class="history-item">
-                <img src="data:image/jpeg;base64,{item['image_b64']}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
-                <div>
-                    <h4>{item['icon']} {item['prediction']}</h4>
-                    <p style="color: {item['color']}; margin: 0;">{item['info']}</p>
-                    <p style="font-size: 0.9rem; margin: 0;">Confianza: {item['confidence']:.2%}</p>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        st.info("Aún no tienes clasificaciones. ¡Sube una imagen en la pestaña anterior para empezar!")
+# # --- 4. Sección de Historial ---
+# with tab2:
+#     st.header("Historial de Clasificaciones")
+#     if st.session_state['history']:
+#         
+#         if st.button("Limpiar Historial"):
+#             st.session_state['history'] = []
+#             st.rerun()
+#
+#         for item in st.session_state['history']:
+#             # Muestra cada elemento del historial en un formato atractivo
+#             st.markdown(f"""
+#             <div class="history-item">
+#                 <img src="data:image/jpeg;base64,{item['image_b64']}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+#                 <div>
+#                     <h4>{item['icon']} {item['prediction']}</h4>
+#                     <p style="color: {item['color']}; margin: 0;">{item['info']}</p>
+#                     <p style="font-size: 0.9rem; margin: 0;">Confianza: {item['confidence']:.2%}</p>
+#                 </div>
+#             </div>
+#             """, unsafe_allow_html=True)
+#     else:
+#         st.info("Aún no tienes clasificaciones. ¡Sube una imagen en la pestaña anterior para empezar!")
