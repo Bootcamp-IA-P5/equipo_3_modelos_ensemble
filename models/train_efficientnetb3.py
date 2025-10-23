@@ -63,7 +63,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_generators(data_dir, img_size=(224, 225), batch_size=32, seed=42):
+def build_generators(data_dir, img_size=(224, 224), batch_size=32, seed=42):
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
     train_dir = os.path.join(data_dir, "train")
