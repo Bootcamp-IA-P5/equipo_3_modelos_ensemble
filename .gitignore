@@ -118,7 +118,7 @@ cython_debug/
 .vscode/
 
 # Project specific
-models/trained/*
+#models/trained/*
 !models/trained/.gitkeep
 models/experiments/*
 !models/experiments/.gitkeep
