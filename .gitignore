@@ -136,3 +136,6 @@ mlruns/
 
 # Optuna
 optuna_studies.db
+models/trained/
+
+temp_count_images.py
