@@ -30,7 +30,7 @@ models/
 
 # Optuna DB and artifacts
 optuna_lightgbm.db
-optuna_best_params.json
+
 
 # Generated data/features and processed CSVs
 /data/features*.csv
