@@ -10,7 +10,7 @@ import json
 import os
 from pathlib import Path
 from typing import Dict
-
+import lightgbm as lgb
 import numpy as np
 import optuna
 from optuna.integration import LightGBMPruningCallback
@@ -228,8 +228,7 @@ class HyperparameterOptimizer:
                 y_train_fold,
                 eval_set=[(X_val_fold, y_val_fold)],
                 eval_metric="multi_logloss",
-                early_stopping_rounds=30,
-                callbacks=[LightGBMPruningCallback(trial, "multi_logloss")],
+                callbacks=[lgb.early_stopping(stopping_rounds=30),],
             )
 
             y_pred_proba = clf.predict_proba(X_val_fold, num_iteration=clf.best_iteration_)
