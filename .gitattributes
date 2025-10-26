@@ -1,0 +1,17 @@
+# Normalize text files and enforce LF for important text types
+* text=auto
+
+# Force LF for Python, shell, markdown and config files
+*.py text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Binary files (no conversion)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
