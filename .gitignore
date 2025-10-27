@@ -49,3 +49,8 @@ htmlcov/
 # Other common
 *.tmp
 *.swp
+label_map.json
+
+map_labels_out.txt
+
+predict_out.txt
