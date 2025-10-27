@@ -27,12 +27,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install dependencies
+      - name: Install minimal dependencies for smoke tests
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest
+          # If a special minimal requirements file exists, install it
+          if [ -f tests/requirements-ci.txt ]; then
+            pip install -r tests/requirements-ci.txt
+          else
+            # Fallback: install a small set of packages likely needed by the scripts
+            pip install pytest pillow pandas numpy scikit-learn joblib
+          fi
 
       - name: Run smoke tests (pytest)
         run: |
           pytest -q --maxfail=1 tests/smoke_test.py
+          
