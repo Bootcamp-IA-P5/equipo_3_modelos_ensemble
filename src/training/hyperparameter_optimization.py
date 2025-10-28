@@ -10,7 +10,7 @@ import json
 import os
 from pathlib import Path
 from typing import Dict
-
+import lightgbm as lgb
 import numpy as np
 import optuna
 from optuna.integration import LightGBMPruningCallback
