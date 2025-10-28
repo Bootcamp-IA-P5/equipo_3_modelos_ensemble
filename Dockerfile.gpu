@@ -1,0 +1,37 @@
+# Dockerfile.gpu
+# Base image with CUDA runtime. Ajusta la versión CUDA si lo necesitas.
+FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Instalar dependencias del sistema y Python
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3 python3-venv python3-pip python3-dev build-essential git curl ca-certificates libgomp1 && \
+    ln -sf /usr/bin/python3 /usr/bin/python && \
+    python -m pip install --upgrade pip setuptools wheel && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copiar requirements (si existen)
+COPY requirements.txt /app/requirements.txt
+
+# Instalar deps de Python (no cache)
+RUN if [ -f /app/requirements.txt ]; then pip install --no-cache-dir -r /app/requirements.txt || true; fi
+
+# Copiar el resto del código
+COPY . /app
+
+# Crear dirs necesarios (no versionados)
+RUN mkdir -p /app/data/feedback /app/data/feedback/images /app/models/trained
+
+EXPOSE 8501
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl --fail http://localhost:8501/_stcore/health || exit 1
+
+# Entrypoint por defecto: contenedor en modo "idle" para poder ejecutarlo y entrar
+ENTRYPOINT ["tail", "-f", "/dev/null"]

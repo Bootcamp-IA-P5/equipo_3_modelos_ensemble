@@ -1,0 +1,19 @@
+version: "3.11-slim"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile    # usa Dockerfile optimizado para CPU
+    image: equipo_3_modelos_ensemble:cpu
+    container_name: e3m_app_cpu
+    working_dir: /app
+    volumes:
+      - ./:/app:cached
+    ports:
+      - "8501:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+    tty: true
+    stdin_open: true
+    command: ["streamlit", "run", "app/app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]

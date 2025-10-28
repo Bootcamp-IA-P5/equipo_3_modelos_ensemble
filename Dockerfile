@@ -1,23 +1,33 @@
-# 1. Usar una imagen base ligera de Python
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# 2. Configurar el directorio de trabajo dentro del contenedor
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
+ENV STREAMLIT_SERVER_PORT=8501
+ENV STREAMLIT_SERVER_HEADLESS=true
+
 WORKDIR /app
 
-# 3. Copiar el archivo de requisitos e instalar dependencias
-# (Aprovechamos la caché de Docker al hacer esto primero)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copiar requirements y script de división
+COPY requirements.txt run_split_requirements.py ./
 
-# 4. Copiar el resto del código de la aplicación
-# Asumimos que la carpeta 'app' contiene app_streamlit.py
-# y la carpeta 'scripts' contiene predict.py
-COPY . /app
+# Instalar dependencias incluyendo torch CPU
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python run_split_requirements.py --input requirements.txt --prod requirements-prod.txt --dev requirements-dev.txt && \
+    # Instalar torch CPU explícitamente
+    python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.9.0+cpu torchvision==0.24.0+cpu && \
+    # Instalar otras dependencias
+    pip install --no-cache-dir -r requirements-prod.txt
 
-# 5. Exponer el puerto por defecto de Streamlit
+# Copiar el código de la aplicación
+COPY . .
+
+# Verificar que los modelos existen
+RUN ls -l models/trained/exp_20251022_110227/ || echo "Warning: No models found in expected path"
+
 EXPOSE 8501
 
-# 6. Comando para ejecutar la aplicación Streamlit
-# Streamlit debe ejecutarse en el puerto 8501 y en el host 0.0.0.0
-# para ser accesible fuera del contenedor.
-CMD ["streamlit", "run", "app/app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Comando con configuraciones explícitas
+CMD ["streamlit", "run", "app/app_streamlit.py", "--server.address", "0.0.0.0", "--server.port", "8501", "--browser.serverAddress", "localhost"]
