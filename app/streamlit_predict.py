@@ -38,14 +38,21 @@ BIN_MAP = {
     "trash": ("Gris", "Resto / Orgánico según municipio - fracción resto (gris)"),
 }
 
-st.set_page_config(page_title="Clasificador de basura - Ensamble", layout="wide")
+st.set_page_config(
+    page_title="EcoSort - Clasificador de Residuos", page_icon="♻️", layout="wide"
+)
 
 st.markdown(
-    "<h1 style='text-align:center'>Clasificador de basura (Ensamble)</h1>",
+    """
+    <div style='display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;margin-bottom:8px;'>
+        <img src='https://img.icons8.com/color/96/000000/recycle-sign.png' alt='EcoSort' width='56' height='56'/>
+        <h1 style='margin:0;padding:0; color: #2E7D32'>EcoSort - Clasificador de Residuos</h1>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<p style='text-align:center'>Sube una imagen con drag & drop o usa el selector. La predicción se hace con un ensamble de modelos entrenados.</p>",
+    "<p style='text-align:center'>Sube una imagen o toma una foto. La predicción se hace con un ensamble de modelos entrenados.</p>",
     unsafe_allow_html=True,
 )
 
@@ -74,8 +81,17 @@ def _discover_model_paths():
     return paths
 
 
-# Sidebar (sin mostrar rutas de modelos)
+# Sidebar (logo, navegación y configuración)
 with st.sidebar:
+    # Logo y navegación
+    st.image("https://img.icons8.com/color/96/000000/recycle-sign.png", width=80)
+    st.title("🗑️ EcoSort")
+    page = st.radio(
+        "Navegación", ["🏠 Clasificar", "ℹ️ Acerca de"], index=0, key="nav_predict"
+    )
+    st.markdown("---")
+
+    # Configuración
     st.header("Configuración")
     use_generator_for_classes = st.checkbox(
         "Obtener nombres de clases desde generador (data/processed)", value=True
@@ -221,146 +237,187 @@ if "models_loaded" not in st.session_state:
         st.session_state["models_loaded"] = False
         st.session_state["model_load_error"] = str(e)
 
-# Interfaz principal
-# Selector de entrada: pestañas para subir archivo o usar la cámara
-tab_upload, tab_camera = st.tabs(["Subir imagen", "Cámara"])
-with tab_upload:
-    uploaded = st.file_uploader(
-        "Arrastra aquí una imagen o pulsa para seleccionar",
-        type=["jpg", "jpeg", "png"],
-        accept_multiple_files=False,
-        key="uploader_file",
-    )
-with tab_camera:
-    # La cámara devuelve un archivo tipo PNG en memoria (similar a UploadedFile)
-    camera_image = st.camera_input("Toma una foto (usa tu webcam)", key="camera_input")
+if page == "🏠 Clasificar":
+    # Interfaz principal
+    # Selector de entrada: pestañas para subir archivo o usar la cámara
+    tab_upload, tab_camera = st.tabs(["Subir imagen", "Cámara"])
+    with tab_upload:
+        uploaded = st.file_uploader(
+            "Arrastra aquí una imagen o pulsa para seleccionar",
+            type=["jpg", "jpeg", "png"],
+            accept_multiple_files=False,
+            key="uploader_file",
+        )
+    with tab_camera:
+        # La cámara devuelve un archivo tipo PNG en memoria (similar a UploadedFile)
+        camera_image = st.camera_input(
+            "Toma una foto (usa tu webcam)", key="camera_input"
+        )
 
-col_main, col_side = st.columns([3, 1])
+    col_main, col_side = st.columns([3, 1])
 
-with col_side:
-    # Mostrar estado sin revelar rutas
-    if st.session_state.get("models_loaded"):
-        st.success(f"Modelos cargados: {len(st.session_state.get('models', []))}")
-        st.write("Los modelos están listos para predecir.")
-    else:
-        err = st.session_state.get("model_load_error")
-        if err:
-            st.error("No se pudieron cargar los modelos automáticamente.")
+    with col_side:
+        # Mostrar estado sin revelar rutas
+        if st.session_state.get("models_loaded"):
+            st.success(f"Modelos cargados: {len(st.session_state.get('models', []))}")
+            st.write("Los modelos están listos para predecir.")
         else:
-            st.info("Cargando modelos...")
+            err = st.session_state.get("model_load_error")
+            if err:
+                st.error("No se pudieron cargar los modelos automáticamente.")
+            else:
+                st.info("Cargando modelos...")
 
+    # Intentar obtener class names
+    class_names = None
+    if use_generator_for_classes:
+        class_names = get_class_names_from_generator()
+    if class_names is None:
+        class_names = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
 
-# Intentar obtener class names
-class_names = None
-if use_generator_for_classes:
-    class_names = get_class_names_from_generator()
-if class_names is None:
-    class_names = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
-
-with col_main:
-    # Determinar la fuente de imagen: cámara prioritaria si ambas existen
-    img = None
-    src_label = None
-    if (
-        "camera_input" in st.session_state
-        and st.session_state["camera_input"] is not None
-    ):
-        camera_file = st.session_state["camera_input"]
-        if camera_file is not None:
+    with col_main:
+        # Determinar la fuente de imagen: cámara prioritaria si ambas existen
+        img = None
+        src_label = None
+        if (
+            "camera_input" in st.session_state
+            and st.session_state["camera_input"] is not None
+        ):
+            camera_file = st.session_state["camera_input"]
+            if camera_file is not None:
+                try:
+                    img = Image.open(camera_file)
+                    src_label = "Foto de cámara"
+                except Exception:
+                    img = None
+        if img is None and uploaded is not None:
             try:
-                img = Image.open(camera_file)
-                src_label = "Foto de cámara"
+                img = Image.open(uploaded)
+                src_label = "Imagen subida"
             except Exception:
                 img = None
-    if img is None and uploaded is not None:
-        try:
-            img = Image.open(uploaded)
-            src_label = "Imagen subida"
-        except Exception:
-            img = None
 
-    if img is None:
-        st.info("Sube una imagen o toma una foto para ver la predicción.")
-    else:
-        # Mostrar imagen y resultados lado a lado (responsive)
-        left, right = st.columns([1, 1])
-        with left:
-            # Use width='stretch' en versiones recientes de Streamlit
-            try:
-                st.image(img, caption=src_label, width="stretch")
-            except TypeError:
-                # Fallback para versiones anteriores
-                st.image(img, caption=src_label, use_container_width=True)
+        if img is None:
+            st.info("Sube una imagen o toma una foto para ver la predicción.")
+        else:
+            # Mostrar imagen y resultados lado a lado (responsive)
+            left, right = st.columns([1, 1])
+            with left:
+                # Use width='stretch' en versiones recientes de Streamlit
+                try:
+                    st.image(img, caption=src_label, width="stretch")
+                except TypeError:
+                    # Fallback para versiones anteriores
+                    st.image(img, caption=src_label, use_container_width=True)
 
-        with right:
-            if st.session_state.get("models_loaded", False):
-                if st.button("Predecir"):
-                    with st.spinner("Calculando predicción..."):
-                        arr = preprocess_image(img)
-                        avg = predict_from_fns(arr, st.session_state["predict_fns"])
+            with right:
+                if st.session_state.get("models_loaded", False):
+                    if st.button("Predecir"):
+                        with st.spinner("Calculando predicción..."):
+                            arr = preprocess_image(img)
+                            avg = predict_from_fns(arr, st.session_state["predict_fns"])
 
-                        # Asegurar que avg sea array
-                        if np.ndim(avg) == 0:
-                            avg = np.array([avg])
+                            # Asegurar que avg sea array
+                            if np.ndim(avg) == 0:
+                                avg = np.array([avg])
 
-                        # Comprobar compatibilidad entre class_names y avg
-                        if len(class_names) != len(avg):
-                            st.error(
-                                f"Número de clases ({len(class_names)}) y tamaño de salida del modelo ({len(avg)}) no coinciden. Mostraré el resultado por índice."
-                            )
-                            probs = {
-                                (
-                                    class_names[i]
-                                    if i < len(class_names)
-                                    else f"idx_{i}"
-                                ): float(avg[i])
-                                for i in range(len(avg))
-                            }
-                            idx = int(np.argmax(avg))
-                            name = (
-                                class_names[idx]
-                                if idx < len(class_names)
-                                else f"idx_{idx}"
-                            )
-                        else:
-                            idx = int(np.argmax(avg))
-                            name = class_names[idx]
-                            probs = {cn: float(p) for cn, p in zip(class_names, avg)}
+                            # Comprobar compatibilidad entre class_names y avg
+                            if len(class_names) != len(avg):
+                                st.error(
+                                    f"Número de clases ({len(class_names)}) y tamaño de salida del modelo ({len(avg)}) no coinciden. Mostraré el resultado por índice."
+                                )
+                                probs = {
+                                    (
+                                        class_names[i]
+                                        if i < len(class_names)
+                                        else f"idx_{i}"
+                                    ): float(avg[i])
+                                    for i in range(len(avg))
+                                }
+                                idx = int(np.argmax(avg))
+                                name = (
+                                    class_names[idx]
+                                    if idx < len(class_names)
+                                    else f"idx_{idx}"
+                                )
+                            else:
+                                idx = int(np.argmax(avg))
+                                name = class_names[idx]
+                                probs = {
+                                    cn: float(p) for cn, p in zip(class_names, avg)
+                                }
 
-                    st.subheader(f"Predicción: {name} (idx={idx})")
-                    st.write("Probabilidades:")
-                    st.table(
-                        {"clase": list(probs.keys()), "prob": list(probs.values())}
-                    )
-
-                    # Sugerencia de contenedor según BIN_MAP
-                    bin_info = BIN_MAP.get(name, ("Desconocido", "No hay sugerencia"))
-                    st.info(f"Contenedor sugerido: {bin_info[0]} — {bin_info[1]}")
-                    st.caption(
-                        "Nota: esta recomendación es orientativa y puede variar según el municipio. Consulta la normativa local para casos concretos."
-                    )
-
-                    # Barra de probabilidades
-                    try:
-                        import pandas as pd
-
-                        df = pd.DataFrame(
-                            {"prob": list(probs.values())}, index=list(probs.keys())
+                        st.subheader(f"Predicción: {name} (idx={idx})")
+                        st.write("Probabilidades:")
+                        st.table(
+                            {"clase": list(probs.keys()), "prob": list(probs.values())}
                         )
-                        st.bar_chart(df)
-                    except Exception:
-                        pass
-            else:
-                st.warning(
-                    "Los modelos no están cargados. Vuelve a cargar la página o revisa el log del servidor."
-                )
 
-st.markdown("---")
-st.markdown("### Notas sobre la clasificación y normativa (España)")
-st.markdown("- Papel y cartón → contenedor azul.")
-st.markdown("- Envases plásticos y metálicos → contenedor amarillo (envases ligeros).")
-st.markdown("- Vidrio → iglú verde.")
-st.markdown("- Resto → contenedor gris / fracción resto (varía por municipio).")
-st.markdown(
-    "Estas son orientaciones generales; consulta la normativa local de tu ayuntamiento para validación definitiva."
-)
+                        # Sugerencia de contenedor según BIN_MAP
+                        bin_info = BIN_MAP.get(
+                            name, ("Desconocido", "No hay sugerencia")
+                        )
+                        st.info(f"Contenedor sugerido: {bin_info[0]} — {bin_info[1]}")
+                        st.caption(
+                            "Nota: esta recomendación es orientativa y puede variar según el municipio. Consulta la normativa local para casos concretos."
+                        )
+
+                        # Barra de probabilidades
+                        try:
+                            import pandas as pd
+
+                            df = pd.DataFrame(
+                                {"prob": list(probs.values())}, index=list(probs.keys())
+                            )
+                            st.bar_chart(df)
+                        except Exception:
+                            pass
+                else:
+                    st.warning(
+                        "Los modelos no están cargados. Vuelve a cargar la página o revisa el log del servidor."
+                    )
+
+    st.markdown("---")
+    st.markdown("### Notas sobre la clasificación y normativa (España)")
+    st.markdown("- Papel y cartón → contenedor azul.")
+    st.markdown(
+        "- Envases plásticos y metálicos → contenedor amarillo (envases ligeros)."
+    )
+    st.markdown("- Vidrio → iglú verde.")
+    st.markdown("- Resto → contenedor gris / fracción resto (varía por municipio).")
+    st.markdown(
+        "Estas son orientaciones generales; consulta la normativa local de tu ayuntamiento para validación definitiva."
+    )
+else:
+    # Página "Acerca de"
+    st.markdown("<h2>ℹ️ Acerca de EcoSort</h2>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        ### 🌍 Misión
+
+        EcoSort es una aplicación de inteligencia artificial diseñada para facilitar el reciclaje
+        correcto de residuos. Nuestro objetivo es ayudar a las personas a clasificar sus residuos
+        de manera más eficiente y contribuir a un planeta más sostenible.
+
+        ### 🤖 Tecnología
+
+        - Deep Learning: ensamble de CNNs (VGG16, ResNet50, MobileNetV2, EfficientNetB3)
+        - Transfer Learning sobre ImageNet
+        - Predicción en local con Streamlit
+
+        ### 📊 Rendimiento
+
+        - 6 clases de residuos
+        - Pipeline reproducible con splits train/val/test
+        - Sistema básico de visualización de probabilidades
+
+        ### 👥 Equipo
+
+        Proyecto desarrollado por el **Equipo 3** del Bootcamp F5 IA
+
+        ### 📞 Contacto
+
+        ¿Tienes sugerencias o encontraste algún problema?
+        ¡Tu feedback es muy valioso para nosotros!
+        """
+    )
