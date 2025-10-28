@@ -1,44 +1,33 @@
-# Dockerfile para EcoSort - Clasificador de Residuos
+FROM python:3.11-slim
 
-FROM python:3.10-slim
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
+ENV STREAMLIT_SERVER_PORT=8501
+ENV STREAMLIT_SERVER_HEADLESS=true
 
-# Metadatos
-LABEL maintainer="Equipo 3 - Bootcamp F5 IA"
-LABEL description="Aplicación de clasificación de residuos con Deep Learning y Ensemble"
-
-# Variables de entorno
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
-
-# Directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+# Copiar requirements y script de división
+COPY requirements.txt run_split_requirements.py ./
 
-# Copiar requirements
-COPY requirements.txt .
+# Instalar dependencias incluyendo torch CPU
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python run_split_requirements.py --input requirements.txt --prod requirements-prod.txt --dev requirements-dev.txt && \
+    # Instalar torch CPU explícitamente
+    python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.9.0+cpu torchvision==0.24.0+cpu && \
+    # Instalar otras dependencias
+    pip install --no-cache-dir -r requirements-prod.txt
 
-# Instalar dependencias de Python
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# Copiar código fuente
+# Copiar el código de la aplicación
 COPY . .
 
-# Crear directorios necesarios
-RUN mkdir -p data/feedback data/feedback/images models/trained
+# Verificar que los modelos existen
+RUN ls -l models/trained/exp_20251022_110227/ || echo "Warning: No models found in expected path"
 
-# Exponer puerto de Streamlit
 EXPOSE 8501
 
-# Health check
-HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health || exit 1
-
-# Comando por defecto
-CMD ["streamlit", "run", "app/app_streamlit.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Comando con configuraciones explícitas
+CMD ["streamlit", "run", "app/app_streamlit.py", "--server.address", "0.0.0.0", "--server.port", "8501", "--browser.serverAddress", "localhost"]

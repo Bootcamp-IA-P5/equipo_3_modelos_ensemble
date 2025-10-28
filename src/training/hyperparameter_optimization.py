@@ -21,6 +21,7 @@ from sklearn.metrics import f1_score
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
+import lightgbm as lgb
 
 
 class HyperparameterOptimizer:
@@ -228,7 +229,10 @@ class HyperparameterOptimizer:
                 y_train_fold,
                 eval_set=[(X_val_fold, y_val_fold)],
                 eval_metric="multi_logloss",
-                callbacks=[lgb.early_stopping(stopping_rounds=30),],
+                callbacks=[
+                    LightGBMPruningCallback(trial, "multi_logloss"),
+                    lgb.early_stopping(stopping_rounds=30),
+                ],
             )
 
             y_pred_proba = clf.predict_proba(X_val_fold, num_iteration=clf.best_iteration_)
