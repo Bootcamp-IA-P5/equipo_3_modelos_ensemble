@@ -222,11 +222,18 @@ if "models_loaded" not in st.session_state:
         st.session_state["model_load_error"] = str(e)
 
 # Interfaz principal
-uploaded = st.file_uploader(
-    "Arrastra aquí una imagen o pulsa para seleccionar",
-    type=["jpg", "jpeg", "png"],
-    accept_multiple_files=False,
-)
+# Selector de entrada: pestañas para subir archivo o usar la cámara
+tab_upload, tab_camera = st.tabs(["Subir imagen", "Cámara"])
+with tab_upload:
+    uploaded = st.file_uploader(
+        "Arrastra aquí una imagen o pulsa para seleccionar",
+        type=["jpg", "jpeg", "png"],
+        accept_multiple_files=False,
+        key="uploader_file",
+    )
+with tab_camera:
+    # La cámara devuelve un archivo tipo PNG en memoria (similar a UploadedFile)
+    camera_image = st.camera_input("Toma una foto (usa tu webcam)", key="camera_input")
 
 col_main, col_side = st.columns([3, 1])
 
@@ -251,20 +258,39 @@ if class_names is None:
     class_names = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
 
 with col_main:
-    if uploaded is None:
-        st.info("Sube una imagen para ver la predicción (drag & drop).")
-    else:
-        img = Image.open(uploaded)
+    # Determinar la fuente de imagen: cámara prioritaria si ambas existen
+    img = None
+    src_label = None
+    if (
+        "camera_input" in st.session_state
+        and st.session_state["camera_input"] is not None
+    ):
+        camera_file = st.session_state["camera_input"]
+        if camera_file is not None:
+            try:
+                img = Image.open(camera_file)
+                src_label = "Foto de cámara"
+            except Exception:
+                img = None
+    if img is None and uploaded is not None:
+        try:
+            img = Image.open(uploaded)
+            src_label = "Imagen subida"
+        except Exception:
+            img = None
 
+    if img is None:
+        st.info("Sube una imagen o toma una foto para ver la predicción.")
+    else:
         # Mostrar imagen y resultados lado a lado (responsive)
         left, right = st.columns([1, 1])
         with left:
             # Use width='stretch' en versiones recientes de Streamlit
             try:
-                st.image(img, caption="Imagen subida", width="stretch")
+                st.image(img, caption=src_label, width="stretch")
             except TypeError:
                 # Fallback para versiones anteriores
-                st.image(img, caption="Imagen subida", use_container_width=True)
+                st.image(img, caption=src_label, use_container_width=True)
 
         with right:
             if st.session_state.get("models_loaded", False):
