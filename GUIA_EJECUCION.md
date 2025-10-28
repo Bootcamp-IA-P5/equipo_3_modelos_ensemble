@@ -73,7 +73,7 @@ data/raw/garbage_classification/
 ### 2.2 Verificar Dataset
 
 ```bash
-python -c "from pathlib import Path; print(f'Total imágenes: {len(list(Path('data/raw/garbage_classification').rglob('*.jpg')))}')"
+python -c "from pathlib import Path; print(f'Total imágenes: {len(list(Path(\"data/raw/garbage_classification\").rglob(\"*.jpg\")))}')"
 ```
 
 Deberías ver aproximadamente 2,500+ imágenes.

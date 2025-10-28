@@ -1,0 +1,6 @@
+pytest
+pillow
+pandas
+numpy
+scikit-learn
+joblib
