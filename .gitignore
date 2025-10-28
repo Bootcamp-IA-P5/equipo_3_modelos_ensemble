@@ -54,3 +54,28 @@ label_map.json
 map_labels_out.txt
 
 predict_out.txt
+# Data files
+data/features_small.csv
+data/train.csv
+*.csv
+*.db
+
+# Model files
+models/lightgbm_final.joblib
+*.joblib
+*.pth
+*.pkl
+
+# Temp and cache
+backups/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Environment
+.venv/
+.env
+
+# Other
+label_map.json
+optuna_lightgbm.db
